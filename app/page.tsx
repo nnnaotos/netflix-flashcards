@@ -63,8 +63,12 @@ export default function Home() {
     if (isShuffled) cards = shuffle(cards);
 
     setFilteredCards(cards);
-    setCurrentIndex(0);
   }, [allCards, showFilter, reviewFilter, isShuffled]);
+
+  // フィルター変更時だけindexをリセット
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [showFilter, reviewFilter, isShuffled]);
 
   const handleShuffle = () => setIsShuffled((s) => !s);
 
