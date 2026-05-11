@@ -25,6 +25,7 @@ export function pageToCard(page: any): Flashcard {
     id: page.id,
     phrase: extractPlainText(props['表現']?.title ?? []),
     meaning: extractPlainText(props['意味']?.rich_text ?? []),
+    example: props['例文']?.rich_text ? extractPlainText(props['例文']?.rich_text) : '',
     show: props['作品名']?.select?.name ?? '',
     latestReviewDate: extractDate(props['Latest Review Date']?.date),
     nextReviewDate: extractDate(props['次回復習日']?.date),

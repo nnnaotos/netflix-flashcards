@@ -10,6 +10,7 @@ interface Props {
   current: number;
   total: number;
   updating: boolean;
+  mode: 'meaningFirst' | 'phraseFirst';
 }
 
 const masteryColors = [
@@ -23,7 +24,7 @@ const masteryColors = [
 
 const masteryLabels = ['未学習', '初級', '初中級', '中級', '上級', 'マスター'];
 
-export default function FlashCard({ card, onRemembered, onAgain, current, total, updating }: Props) {
+export default function FlashCard({ card, onRemembered, onAgain, current, total, updating, mode }: Props) {
   const [flipped, setFlipped] = useState(false);
   const [animKey, setAnimKey] = useState(0);
 
@@ -34,6 +35,7 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
   }, [card.id]);
 
   const mastery = Math.min(5, Math.max(0, card.mastery ?? 0));
+  const isMeaningFirst = mode === 'meaningFirst';
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto px-4">
@@ -81,10 +83,28 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
               タップして確認
             </span>
 
-            <p className="text-4xl md:text-5xl font-display text-white text-center leading-tight"
-              style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}>
-              {card.phrase}
-            </p>
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              {isMeaningFirst ? (
+                <p className="text-xl md:text-2xl text-gray-300 font-body font-medium leading-relaxed text-center">
+                  {card.meaning}
+                </p>
+              ) : (
+                <>
+                  <p className="text-4xl md:text-5xl font-display text-white text-center leading-tight"
+                    style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}>
+                    {card.phrase}
+                  </p>
+                  {card.example && (
+                    <>
+                      <div className="w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+                      <p className="text-sm text-gray-400 font-body leading-relaxed text-center max-w-sm">
+                        {card.example}
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Back */}
@@ -99,12 +119,27 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
               {card.show}
             </span>
 
-            <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-xl md:text-2xl text-gray-300 font-body font-medium leading-relaxed">
-                {card.meaning}
-              </p>
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent" />
-              <p className="text-sm text-gray-500 font-body">{card.phrase}</p>
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+              {isMeaningFirst ? (
+                <>
+                  <p className="text-4xl md:text-5xl font-display text-white leading-tight"
+                    style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}>
+                    {card.phrase}
+                  </p>
+                  {card.example && (
+                    <>
+                      <div className="w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+                      <p className="text-sm text-gray-400 font-body leading-relaxed max-w-sm">
+                        {card.example}
+                      </p>
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className="text-xl md:text-2xl text-gray-300 font-body font-medium leading-relaxed">
+                  {card.meaning}
+                </p>
+              )}
             </div>
           </div>
         </div>

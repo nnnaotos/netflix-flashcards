@@ -27,6 +27,7 @@ export default function Home() {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [mode, setMode] = useState<'meaningFirst' | 'phraseFirst'>('meaningFirst');
 
   // Fetch cards
   const fetchCards = useCallback(async () => {
@@ -196,6 +197,34 @@ export default function Home() {
           }}
         />
 
+        {/* Mode selector */}
+        {!loading && totalFiltered > 0 && (
+          <div className="w-full max-w-2xl mx-auto px-4 flex items-center justify-center gap-2 mb-2">
+            <button
+              onClick={() => setMode('meaningFirst')}
+              className="flex items-center gap-1 text-xs transition-colors px-3 py-1.5 rounded-lg"
+              style={{
+                background: mode === 'meaningFirst' ? 'rgba(229,9,20,0.15)' : '#1f1f1f',
+                border: mode === 'meaningFirst' ? '1px solid rgba(229,9,20,0.4)' : '1px solid #2a2a2a',
+                color: mode === 'meaningFirst' ? '#E50914' : '#888',
+              }}
+            >
+              意味 → 表現
+            </button>
+            <button
+              onClick={() => setMode('phraseFirst')}
+              className="flex items-center gap-1 text-xs transition-colors px-3 py-1.5 rounded-lg"
+              style={{
+                background: mode === 'phraseFirst' ? 'rgba(229,9,20,0.15)' : '#1f1f1f',
+                border: mode === 'phraseFirst' ? '1px solid rgba(229,9,20,0.4)' : '1px solid #2a2a2a',
+                color: mode === 'phraseFirst' ? '#E50914' : '#888',
+              }}
+            >
+              表現 → 意味
+            </button>
+          </div>
+        )}
+
         {/* Shuffle + nav */}
         {!loading && totalFiltered > 0 && (
           <div className="w-full max-w-2xl mx-auto px-4 flex items-center justify-between">
@@ -271,6 +300,7 @@ export default function Home() {
             current={currentIndex + 1}
             total={totalFiltered}
             updating={updating}
+            mode={mode}
           />
         ) : null}
 
