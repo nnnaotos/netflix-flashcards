@@ -18,6 +18,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export default function Home() {
   const [allCards, setAllCards] = useState<Flashcard[]>([]);
+  const [deckVersion, setDeckVersion] = useState(0);
   const [filteredCards, setFilteredCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showFilter, setShowFilter] = useState<Show>('all');
@@ -37,6 +38,7 @@ export default function Home() {
       if (!res.ok) throw new Error('取得失敗');
       const data = await res.json();
       setAllCards(data.cards);
+      setDeckVersion((v) => v + 1);
     } catch {
       setError('カードの取得に失敗しました。Notionの設定を確認してください。');
     } finally {
@@ -46,7 +48,8 @@ export default function Home() {
 
   useEffect(() => { fetchCards(); }, [fetchCards]);
 
-  // Apply filters
+  // Apply filters (rebuild the deck only on load / filter / shuffle change).
+  // allCards is intentionally not a dependency so review updates keep the current position.
   useEffect(() => {
     let cards = [...allCards];
 
@@ -64,7 +67,7 @@ export default function Home() {
 
     setFilteredCards(cards);
     setCurrentIndex(0);
-  }, [allCards, showFilter, reviewFilter, isShuffled]);
+  }, [deckVersion, showFilter, reviewFilter, isShuffled]);
 
   const handleShuffle = () => setIsShuffled((s) => !s);
 
@@ -95,9 +98,9 @@ export default function Home() {
       if (!res.ok) throw new Error();
       const result = await res.json();
 
-      // Update local state
-      setAllCards((prev) =>
-        prev.map((c) =>
+      // Update local state (both lists, so the deck order is kept)
+      const applyReview = (cards: Flashcard[]) =>
+        cards.map((c) =>
           c.id === card.id
             ? {
                 ...c,
@@ -108,17 +111,14 @@ export default function Home() {
                 easeFactor: result.easeFactor,
               }
             : c
-        )
-      );
+        );
+      setAllCards(applyReview);
+      setFilteredCards(applyReview);
 
       showToast(remembered ? '✅ 記録しました！' : '🔄 後で再挑戦します', 'success');
 
-      // Move to next card
-      setTimeout(() => {
-        if (currentIndex < filteredCards.length - 1) {
-          setCurrentIndex((i) => i + 1);
-        }
-      }, 400);
+      // Move to next card (past the last card shows the completed state)
+      setTimeout(() => setCurrentIndex((i) => i + 1), 400);
     } catch {
       showToast('更新に失敗しました', 'error');
     } finally {

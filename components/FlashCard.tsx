@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Flashcard } from '@/types';
+import { sm2, getQuality } from '@/lib/sm2';
 
 interface Props {
   card: Flashcard;
@@ -34,6 +35,8 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
   }, [card.id]);
 
   const mastery = Math.min(5, Math.max(0, card.mastery ?? 0));
+  // Interval that "覚えた" would produce (same calculation as /api/update)
+  const rememberedInterval = sm2(getQuality(true), card.interval, card.easeFactor, card.mastery).interval;
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto px-4">
@@ -146,7 +149,7 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
           <span className="flex flex-col items-center gap-1">
             <span className="text-lg">✅</span>
             <span>覚えた</span>
-            <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>次回: {getNextLabel(card.interval)}</span>
+            <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>次回: {getNextLabel(rememberedInterval)}</span>
           </span>
         </button>
 

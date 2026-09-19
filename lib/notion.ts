@@ -7,9 +7,9 @@ export const notion = new Client({
 
 const DB_ID = process.env.NOTION_DATABASE_ID!;
 
-function extractPlainText(richText: unknown[]): string {
+function extractPlainText(richText: { plain_text?: string }[]): string {
   if (!Array.isArray(richText)) return '';
-  return richText.map((t: { plain_text?: string }) => t.plain_text ?? '').join('');
+  return richText.map((t) => t.plain_text ?? '').join('');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
