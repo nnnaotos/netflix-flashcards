@@ -56,6 +56,26 @@ export async function fetchAllCards(): Promise<Flashcard[]> {
   return cards;
 }
 
+/** Notion ids come with or without dashes depending on where they were copied from */
+function sameId(a: string, b: string): boolean {
+  return a.replace(/-/g, '').toLowerCase() === b.replace(/-/g, '').toLowerCase();
+}
+
+/**
+ * Read one card's current state straight from Notion.
+ * Returns null when the page is not in the configured database, so a page id
+ * from the client can never be used to write to some other page.
+ */
+export async function fetchCardInDatabase(pageId: string): Promise<Flashcard | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const page: any = await notion.pages.retrieve({ page_id: pageId });
+
+  if (page?.parent?.type !== 'database_id') return null;
+  if (!sameId(page.parent.database_id, DB_ID)) return null;
+
+  return pageToCard(page);
+}
+
 export async function updateCardReview(
   pageId: string,
   latestReviewDate: string,

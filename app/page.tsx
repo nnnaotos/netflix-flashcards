@@ -86,14 +86,8 @@ export default function Home() {
       const res = await fetch('/api/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pageId: card.id,
-          remembered,
-          easy,
-          currentInterval: card.interval ?? 0,
-          currentEF: card.easeFactor ?? 2.5,
-          currentMastery: card.mastery ?? 0,
-        }),
+        // SM-2 state is read from Notion on the server, so it is not sent here
+        body: JSON.stringify({ pageId: card.id, remembered, easy }),
       });
 
       if (!res.ok) throw new Error();

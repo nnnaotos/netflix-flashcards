@@ -72,7 +72,15 @@ components/           カード表示、フィルタ、進捗表示
 
 Vercel。環境変数（`NOTION_TOKEN` と `NOTION_DATABASE_ID`）は Vercel 側の Settings にも設定しておく。
 
-## 注意
+## アクセス制限について
 
-API ルート（`/api/cards`、`/api/update`）に認証はかかってへん。URL を知っている人は誰でも
-カードを読めるし、復習データも書き換えられる。
+アプリ自体はログインの仕組みを持ってへん。公開したままやと、URL を知っている人は誰でも
+カードを読めるし、復習データも書き換えられる。**Vercel の Deployment Protection
+（Settings → Deployment Protection）でアクセスを制限する前提**にしてある。
+
+`/api/update` の側では、次の2つで被害を抑えてある。
+
+- 復習の計算に使う値（Interval・EaseFactor・習熟度）は、リクエストの中身やなくて
+  Notion から読み直したものを使う
+- 渡されたページが、`NOTION_DATABASE_ID` のデータベースに属してへんかったら 404 を返す
+  （他のページを書き換えられへんようにするため）
