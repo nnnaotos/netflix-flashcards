@@ -25,6 +25,9 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# playwright mcp (動作確認時の出力)
+/.playwright-mcp/
+
 # vercel
 .vercel
 
