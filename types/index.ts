@@ -10,14 +10,6 @@ export interface Flashcard {
   show: string;         // 作品名 (select)
   latestReviewDate: string | null;  // Latest Review Date (date)
   nextReviewDate: string | null;    // 次回復習日 (date)
-  mastery: number;                  // 習熟度 (number) 0-5
-  interval: number;                 // SM-2 interval (days)
-  easeFactor: number;               // SM-2 ease factor
-}
-
-export interface SM2Result {
-  interval: number;
-  easeFactor: number;
-  nextReviewDate: string;
-  mastery: number;
+  mastery: number;                  // 習熟度 (number) 0-5 = 復習間隔の段階
+  interval: number;                 // Interval (days) 直近に設定した間隔
 }

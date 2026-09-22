@@ -31,7 +31,6 @@ export function pageToCard(page: any): Flashcard {
     nextReviewDate: extractDate(props['次回復習日']?.date),
     mastery: props['習熟度']?.number ?? 0,
     interval: props['Interval']?.number ?? 0,
-    easeFactor: props['EaseFactor']?.number ?? 2.5,
   };
 }
 
@@ -76,13 +75,13 @@ export async function fetchCardInDatabase(pageId: string): Promise<Flashcard | n
   return pageToCard(page);
 }
 
+/** EaseFactor は使わなくなったので書き込まない（過去の値はNotionにそのまま残る） */
 export async function updateCardReview(
   pageId: string,
   latestReviewDate: string,
   nextReviewDate: string,
   mastery: number,
-  interval: number,
-  easeFactor: number
+  interval: number
 ) {
   await notion.pages.update({
     page_id: pageId,
@@ -98,9 +97,6 @@ export async function updateCardReview(
       },
       'Interval': {
         number: interval,
-      },
-      'EaseFactor': {
-        number: easeFactor,
       },
     },
   });

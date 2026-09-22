@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Flashcard, Show, ReviewFilter, DueFilter } from '@/types';
-import { isDue } from '@/lib/sm2';
+import { isDue, Answer } from '@/lib/schedule';
 import { todayJST } from '@/lib/date';
 import FlashCard from '@/components/FlashCard';
 import FilterBar from '@/components/FilterBar';
@@ -83,7 +83,7 @@ export default function Home() {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const handleReview = async (remembered: boolean, easy = false) => {
+  const handleReview = async (answer: Answer) => {
     const card = filteredCards[currentIndex];
     if (!card) return;
 
@@ -92,34 +92,41 @@ export default function Home() {
       const res = await fetch('/api/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // SM-2 state is read from Notion on the server, so it is not sent here
-        body: JSON.stringify({ pageId: card.id, remembered, easy }),
+        // 段階はサーバーがNotionから読み直すので、ここでは送らない
+        body: JSON.stringify({ pageId: card.id, answer }),
       });
 
       if (!res.ok) throw new Error();
       const result = await res.json();
 
-      // Update local state (both lists, so the deck order is kept)
+      const reviewed = (c: Flashcard) => ({
+        ...c,
+        latestReviewDate: todayJST(),
+        nextReviewDate: result.nextReviewDate,
+        mastery: result.step,
+        interval: result.interval,
+      });
       const applyReview = (cards: Flashcard[]) =>
-        cards.map((c) =>
-          c.id === card.id
-            ? {
-                ...c,
-                latestReviewDate: todayJST(),
-                nextReviewDate: result.nextReviewDate,
-                mastery: result.mastery,
-                interval: result.interval,
-                easeFactor: result.easeFactor,
-              }
-            : c
-        );
+        cards.map((c) => (c.id === card.id ? reviewed(c) : c));
+
       setAllCards(applyReview);
-      setFilteredCards(applyReview);
 
-      showToast(remembered ? '✅ 記録しました！' : '🔄 後で再挑戦します', 'success');
+      if (answer === 'again') {
+        // 忘れたカードはその日のうちにもう一度。デッキの末尾に回す
+        setFilteredCards((prev) => [
+          ...prev.filter((c) => c.id !== card.id),
+          reviewed(card),
+        ]);
+      } else {
+        setFilteredCards(applyReview);
+      }
 
-      // Move to next card (past the last card shows the completed state)
-      setTimeout(() => setCurrentIndex((i) => i + 1), 400);
+      showToast(answer === 'again' ? '🔄 あとでもう一度出します' : '✅ 記録しました！', 'success');
+
+      // 次のカードへ。「もう一度」は今のカードが末尾へ抜けて後ろが詰まるので据え置き
+      if (answer !== 'again') {
+        setTimeout(() => setCurrentIndex((i) => i + 1), 400);
+      }
     } catch {
       showToast('更新に失敗しました', 'error');
     } finally {
@@ -311,8 +318,8 @@ export default function Home() {
           <FlashCard
             key={card.id}
             card={card}
-            onRemembered={(easy) => handleReview(true, easy)}
-            onAgain={() => handleReview(false)}
+            onRemembered={(easy) => handleReview(easy ? 'easy' : 'ok')}
+            onAgain={() => handleReview('again')}
             current={currentIndex + 1}
             total={totalFiltered}
             updating={updating}

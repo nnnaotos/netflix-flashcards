@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Flashcard } from '@/types';
-import { sm2, getQuality } from '@/lib/sm2';
+import { intervalFor } from '@/lib/schedule';
 
 interface Props {
   card: Flashcard;
@@ -37,8 +37,9 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
 
   const mastery = Math.min(5, Math.max(0, card.mastery ?? 0));
   const isMeaningFirst = mode === 'meaningFirst';
-  // Interval that "覚えた" would produce (same calculation as /api/update)
-  const rememberedInterval = sm2(getQuality(true), card.interval, card.easeFactor, card.mastery).interval;
+  // 押したらどうなるかの予告。/api/update と同じ計算
+  const okInterval = intervalFor(card.mastery, 'ok');
+  const easyInterval = intervalFor(card.mastery, 'easy');
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto px-4">
@@ -165,7 +166,7 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
           <span className="flex flex-col items-center gap-1">
             <span className="text-lg">🔄</span>
             <span>もう一度</span>
-            <span className="text-xs text-gray-500 font-normal">明日また出題</span>
+            <span className="text-xs text-gray-500 font-normal">あとでもう一度</span>
           </span>
         </button>
 
@@ -184,7 +185,7 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
           <span className="flex flex-col items-center gap-1">
             <span className="text-lg">✅</span>
             <span>覚えた</span>
-            <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>次回: {getNextLabel(rememberedInterval)}</span>
+            <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>次回: {getNextLabel(okInterval)}</span>
           </span>
         </button>
 
@@ -203,7 +204,7 @@ export default function FlashCard({ card, onRemembered, onAgain, current, total,
           <span className="flex flex-col items-center gap-1">
             <span className="text-lg">⚡</span>
             <span>完璧！</span>
-            <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>より長い間隔</span>
+            <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.7)' }}>次回: {getNextLabel(easyInterval)}</span>
           </span>
         </button>
       </div>

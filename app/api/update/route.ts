@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchCardInDatabase, updateCardReview } from '@/lib/notion';
-import { sm2, getQuality } from '@/lib/sm2';
+import { nextReview, Answer } from '@/lib/schedule';
 import { todayJST } from '@/lib/date';
 
 export const runtime = 'nodejs';
 
 const PAGE_ID = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
+const ANSWERS: Answer[] = ['again', 'ok', 'easy'];
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,34 +16,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
     }
 
-    const { pageId, remembered, easy = false } = body;
+    const { pageId, answer } = body;
 
     if (typeof pageId !== 'string' || !PAGE_ID.test(pageId.trim())) {
       return NextResponse.json({ error: 'Invalid pageId' }, { status: 400 });
     }
-    if (typeof remembered !== 'boolean' || typeof easy !== 'boolean') {
-      return NextResponse.json({ error: 'Invalid fields' }, { status: 400 });
+    if (!ANSWERS.includes(answer)) {
+      return NextResponse.json({ error: 'Invalid answer' }, { status: 400 });
     }
 
-    // The SM-2 state comes from Notion, never from the client: the client's
-    // copy can be stale (another device) or tampered with.
+    // 段階(習熟度)はNotionから読み直す。クライアントの値は古いことも改ざんされることもある
     const card = await fetchCardInDatabase(pageId.trim());
     if (!card) {
       return NextResponse.json({ error: 'Card not found' }, { status: 404 });
     }
 
-    const quality = getQuality(remembered, easy);
-    const result = sm2(quality, card.interval, card.easeFactor, card.mastery);
-
-    const today = todayJST();
+    const result = nextReview(card.mastery, answer);
 
     await updateCardReview(
       card.id,
-      today,
+      todayJST(),
       result.nextReviewDate,
-      result.mastery,
-      result.interval,
-      result.easeFactor
+      result.step,
+      result.interval
     );
 
     return NextResponse.json({ success: true, ...result });
