@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Flashcard, Show, ReviewFilter } from '@/types';
+import { Flashcard, Show, ReviewFilter, DueFilter } from '@/types';
 import { isDue } from '@/lib/sm2';
+import { todayJST } from '@/lib/date';
 import FlashCard from '@/components/FlashCard';
 import FilterBar from '@/components/FilterBar';
 import ProgressHeader from '@/components/ProgressHeader';
@@ -21,6 +22,7 @@ export default function Home() {
   const [deckVersion, setDeckVersion] = useState(0);
   const [filteredCards, setFilteredCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [dueFilter, setDueFilter] = useState<DueFilter>('due');
   const [showFilter, setShowFilter] = useState<Show>('all');
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
   const [isShuffled, setIsShuffled] = useState(false);
@@ -54,6 +56,10 @@ export default function Home() {
   useEffect(() => {
     let cards = [...allCards];
 
+    if (dueFilter === 'due') {
+      cards = cards.filter((c) => isDue(c.nextReviewDate));
+    }
+
     if (showFilter !== 'all') {
       cards = cards.filter((c) => c.show === showFilter);
     }
@@ -68,7 +74,7 @@ export default function Home() {
 
     setFilteredCards(cards);
     setCurrentIndex(0);
-  }, [deckVersion, showFilter, reviewFilter, isShuffled]);
+  }, [deckVersion, dueFilter, showFilter, reviewFilter, isShuffled]);
 
   const handleShuffle = () => setIsShuffled((s) => !s);
 
@@ -99,7 +105,7 @@ export default function Home() {
           c.id === card.id
             ? {
                 ...c,
-                latestReviewDate: new Date().toISOString().split('T')[0],
+                latestReviewDate: todayJST(),
                 nextReviewDate: result.nextReviewDate,
                 mastery: result.mastery,
                 interval: result.interval,
@@ -121,17 +127,21 @@ export default function Home() {
     }
   };
 
-  // Computed counts
-  const getCount = (rFilter: ReviewFilter) => {
-    let cards = showFilter === 'all' ? allCards : allCards.filter((c) => c.show === showFilter);
-    if (rFilter === 'unreviewed') return cards.filter((c) => !c.latestReviewDate).length;
-    if (rFilter === 'reviewed') return cards.filter((c) => !!c.latestReviewDate).length;
-    return cards.length;
+  // Computed counts. Everything below is scoped to the selected show, and the
+  // review filter counts are scoped to the due filter on top of that.
+  const showCards = showFilter === 'all' ? allCards : allCards.filter((c) => c.show === showFilter);
+  const dueCards = showCards.filter((c) => isDue(c.nextReviewDate));
+  const scopedCards = dueFilter === 'due' ? dueCards : showCards;
+
+  const dueCounts = { due: dueCards.length, all: showCards.length };
+  const reviewCounts = {
+    all: scopedCards.length,
+    unreviewed: scopedCards.filter((c) => !c.latestReviewDate).length,
+    reviewed: scopedCards.filter((c) => !!c.latestReviewDate).length,
   };
 
   const totalFiltered = filteredCards.length;
-  const reviewedCount = allCards.filter((c) => !!c.latestReviewDate).length;
-  const dueTodayCount = allCards.filter((c) => isDue(c.nextReviewDate)).length;
+  const reviewedCount = showCards.filter((c) => !!c.latestReviewDate).length;
 
   const card = filteredCards[currentIndex];
 
@@ -169,22 +179,21 @@ export default function Home() {
         {!loading && (
           <ProgressHeader
             reviewed={reviewedCount}
-            total={allCards.length}
-            dueToday={dueTodayCount}
+            total={showCards.length}
+            dueToday={dueCounts.due}
           />
         )}
 
         {/* Filters */}
         <FilterBar
+          dueFilter={dueFilter}
+          onDueFilterChange={setDueFilter}
+          dueCounts={dueCounts}
           show={showFilter}
           reviewFilter={reviewFilter}
           onShowChange={setShowFilter}
           onReviewFilterChange={setReviewFilter}
-          counts={{
-            all: getCount('all'),
-            unreviewed: getCount('unreviewed'),
-            reviewed: getCount('reviewed'),
-          }}
+          counts={reviewCounts}
         />
 
         {/* Mode selector */}
@@ -277,8 +286,25 @@ export default function Home() {
         ) : totalFiltered === 0 ? (
           <div className="w-full max-w-2xl mx-auto px-4">
             <div className="rounded-xl p-10 text-center" style={{ background: '#1f1f1f', border: '1px solid #2a2a2a' }}>
-              <p className="text-4xl mb-3" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}>0</p>
-              <p className="text-gray-400 text-sm">該当するカードがありません</p>
+              {dueFilter === 'due' && reviewFilter === 'all' ? (
+                <>
+                  <p className="text-4xl mb-3">🎉</p>
+                  <p className="text-gray-300 text-sm mb-1">今日の課題は終わりです</p>
+                  <p className="text-gray-500 text-xs mb-6">お疲れさま。復習日が来たカードはもうありません</p>
+                  <button
+                    onClick={() => setDueFilter('all')}
+                    className="px-5 py-2.5 rounded-lg text-sm font-semibold"
+                    style={{ background: '#E50914', color: '#fff' }}
+                  >
+                    すべてのカードを見る
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-4xl mb-3" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}>0</p>
+                  <p className="text-gray-400 text-sm">該当するカードがありません</p>
+                </>
+              )}
             </div>
           </div>
         ) : card ? (

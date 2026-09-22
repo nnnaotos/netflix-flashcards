@@ -1,5 +1,6 @@
 export type Show = 'プリズンブレイク' | 'SUITS' | 'all';
 export type ReviewFilter = 'all' | 'unreviewed' | 'reviewed';
+export type DueFilter = 'due' | 'all';
 
 export interface Flashcard {
   id: string;
