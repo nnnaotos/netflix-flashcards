@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchCardInDatabase, updateCardReview } from '@/lib/notion';
 import { sm2, getQuality } from '@/lib/sm2';
+import { todayJST } from '@/lib/date';
 
 export const runtime = 'nodejs';
 
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     const quality = getQuality(remembered, easy);
     const result = sm2(quality, card.interval, card.easeFactor, card.mastery);
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayJST();
 
     await updateCardReview(
       card.id,

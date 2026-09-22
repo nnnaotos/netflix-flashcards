@@ -1,4 +1,5 @@
 import { SM2Result } from '@/types';
+import { addDaysJST, todayJST } from '@/lib/date';
 
 /**
  * SM-2 Spaced Repetition Algorithm
@@ -44,10 +45,8 @@ export function sm2(
     newMastery = Math.max(0, currentMastery - 1);
   }
 
-  // Calculate next review date
-  const nextDate = new Date();
-  nextDate.setDate(nextDate.getDate() + newInterval);
-  const nextReviewDate = nextDate.toISOString().split('T')[0];
+  // Calculate next review date (JST)
+  const nextReviewDate = addDaysJST(newInterval);
 
   return {
     interval: newInterval,
@@ -67,6 +66,5 @@ export function getQuality(remembered: boolean, easy = false): number {
 /** Check if a card is due today */
 export function isDue(nextReviewDate: string | null): boolean {
   if (!nextReviewDate) return true; // Never reviewed → always due
-  const today = new Date().toISOString().split('T')[0];
-  return nextReviewDate <= today;
+  return nextReviewDate <= todayJST();
 }
