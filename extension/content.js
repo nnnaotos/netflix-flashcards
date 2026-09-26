@@ -6,6 +6,8 @@
   // 「今のフレーズええな」と気づいてキーを押すまで1〜2秒かかる。その間に字幕は消える
   const RECENT_MS = 5000;
 
+  const MODIFIER_KEYS = ['alt', 'ctrl', 'control', 'shift'];
+
   let current = '';
   let recent = '';
   let recentAt = 0;
@@ -37,6 +39,8 @@
       recent = text;
       recentAt = Date.now();
     } else {
+      // 消えた瞬間を起点にせんと、長く映っとった行ほど猶予が短なる
+      if (current) recentAt = Date.now();
       current = '';
     }
   }
@@ -60,6 +64,7 @@
     if (observer) observer.disconnect();
     observer = null;
     observedRoot = null;
+    current = ''; // コンテナごと消えたときは update() が走らへんので、古い字幕が残ったままになる
     track();
   }
 
@@ -137,10 +142,17 @@
     toast('送信中…', 'info');
 
     const show = readTitle();
-    const res = await chrome.runtime.sendMessage({
-      type: 'capture',
-      payload: show ? { phrase, show } : { phrase },
-    });
+    let res;
+    try {
+      res = await chrome.runtime.sendMessage({
+        type: 'capture',
+        payload: show ? { phrase, show } : { phrase },
+      });
+    } catch {
+      // 拡張をリロードすると、開いたままのタブの content script は chrome.* を失う
+      toast('拡張を再読み込みしたときは、Netflix のタブも再読み込みしてください', 'error');
+      return;
+    }
 
     if (!res?.ok) {
       toast(res?.error ?? '送信に失敗しました', 'error');
@@ -158,11 +170,18 @@
       .split('+')
       .map((p) => p.trim().toLowerCase());
 
+    const key = parts[parts.length - 1];
+
+    // 修飾キーだけや末尾が空やと、二度と発火せえへんか毎打鍵で発火してまう
+    if (!key || MODIFIER_KEYS.includes(key)) {
+      return { alt: true, ctrl: false, shift: false, key: 's' };
+    }
+
     return {
       alt: parts.includes('alt'),
       ctrl: parts.includes('ctrl') || parts.includes('control'),
       shift: parts.includes('shift'),
-      key: parts[parts.length - 1],
+      key,
     };
   }
 

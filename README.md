@@ -149,7 +149,7 @@ Netflix で再生中、気になる字幕が出たら `Alt+S`。再生は止ま�
 
 ### 動かへんとき
 
-- トーストが出ない → `chrome://extensions` で拡張をリロードする
+- トーストが出ない → `chrome://extensions` で拡張をリロードして、そのあと Netflix のタブも再読み込みする
 - `字幕が取得できません` → Netflix 側の DOM が変わった可能性がある。
   DevTools で `document.querySelector('.player-timedtext')` を見て、
   `extension/content.js` の `SUBTITLE_ROOT` / `SUBTITLE_LINE` を直す
@@ -157,7 +157,7 @@ Netflix で再生中、気になる字幕が出たら `Alt+S`。再生は止ま�
 - `送信に失敗しました (500)` → アプリ側に `CAPTURE_SECRET` が設定されてへん
 - `送信に失敗しました` とだけ出る（括弧のステータス番号が無い）→ 送信先が `*.vercel.app` でも
   `localhost:3000` でもない独自ドメインかもしれへん。`extension/manifest.json` の
-  `host_permissions` にそのオリジンを足して、拡張をリロードする
+  `host_permissions` にそのオリジンを足して、拡張をリロードしてから Netflix のタブも再読み込みする
 
 ## デプロイ
 
