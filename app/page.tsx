@@ -54,7 +54,8 @@ export default function Home() {
   // Apply filters (rebuild the deck only on load / filter / shuffle change).
   // allCards is intentionally not a dependency so review updates keep the current position.
   useEffect(() => {
-    let cards = [...allCards];
+    // 意味が空のカードは学習に使えへんので、デッキに混ぜへん
+    let cards = allCards.filter((c) => !c.isDraft);
 
     if (dueFilter === 'due') {
       cards = cards.filter((c) => isDue(c.nextReviewDate));
@@ -136,7 +137,9 @@ export default function Home() {
 
   // Computed counts. Everything below is scoped to the selected show, and the
   // review filter counts are scoped to the due filter on top of that.
-  const showCards = showFilter === 'all' ? allCards : allCards.filter((c) => c.show === showFilter);
+  const studyCards = allCards.filter((c) => !c.isDraft);
+  const draftCount = allCards.length - studyCards.length;
+  const showCards = showFilter === 'all' ? studyCards : studyCards.filter((c) => c.show === showFilter);
   const dueCards = showCards.filter((c) => isDue(c.nextReviewDate));
   const scopedCards = dueFilter === 'due' ? dueCards : showCards;
 
@@ -188,6 +191,7 @@ export default function Home() {
             reviewed={reviewedCount}
             total={showCards.length}
             dueToday={dueCounts.due}
+            drafts={draftCount}
           />
         )}
 

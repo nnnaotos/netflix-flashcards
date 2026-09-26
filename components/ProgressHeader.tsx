@@ -4,9 +4,10 @@ interface Props {
   reviewed: number;
   total: number;
   dueToday: number;
+  drafts: number;
 }
 
-export default function ProgressHeader({ reviewed, total, dueToday }: Props) {
+export default function ProgressHeader({ reviewed, total, dueToday, drafts }: Props) {
   const pct = total > 0 ? Math.round((reviewed / total) * 100) : 0;
 
   return (
@@ -33,6 +34,14 @@ export default function ProgressHeader({ reviewed, total, dueToday }: Props) {
               </span>
               <span className="text-xs text-gray-500">今日の課題</span>
             </span>
+            {drafts > 0 && (
+              <span className="flex flex-col items-center">
+                <span className="text-2xl font-bold" style={{ fontFamily: 'Bebas Neue, sans-serif', color: '#60a5fa', letterSpacing: '0.02em' }}>
+                  {drafts}
+                </span>
+                <span className="text-xs text-gray-500">下書き</span>
+              </span>
+            )}
           </div>
           <span className="text-3xl font-bold" style={{ fontFamily: 'Bebas Neue, sans-serif', color: pct === 100 ? '#22c55e' : '#E50914', letterSpacing: '0.02em' }}>
             {pct}%
