@@ -17,16 +17,20 @@ Next.js 16（App Router）/ React 19 / TypeScript / Tailwind CSS 3 / `@notionhq/
 npm install
 ```
 
-プロジェクト直下に `.env.local` を作って、次の2つを書く。
+プロジェクト直下に `.env.local` を作って、次の3つを書く。
 
 ```
 NOTION_TOKEN=<Notion インテグレーションのトークン>
 NOTION_DATABASE_ID=<カード用データベースの ID>
+CAPTURE_SECRET=<自分で決めた長い文字列>
 ```
 
 - トークンは https://www.notion.so/my-integrations で発行する。
 - **作ったインテグレーションをデータベースに接続（共有）しておくこと。** これを忘れると、トークンが正しくてもカードを取得できへん。
 - データベース ID は、データベースを開いたときの URL に含まれる32桁の文字列。
+- `CAPTURE_SECRET` は Chrome 拡張から `/api/capture` を叩くときの合言葉。
+  `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` あたりで作る。
+  **設定してへんと `/api/capture` は 500 を返して何も受け付けへん。**
 
 ```bash
 npm run dev     # 開発サーバー (http://localhost:3000)
@@ -59,6 +63,7 @@ npm start       # ビルド済みのものを起動
 app/page.tsx          画面本体（カードの並び、フィルタ、回答の処理）
 app/api/cards         GET  Notion から全カードを取得
 app/api/update        POST 回答を受けて次の復習日を計算し、Notion を更新
+app/api/capture       POST 拡張から届いたフレーズを下書きカードとして作成
 lib/notion.ts         Notion クライアントとページ⇔カードの変換
 lib/schedule.ts       復習間隔の段階表と遷移ルール、復習日の判定
 components/           カード表示、フィルタ、進捗表示
