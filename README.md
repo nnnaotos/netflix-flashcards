@@ -109,7 +109,8 @@ components/           カード表示、フィルタ、進捗表示
 
 ## デプロイ
 
-Vercel。環境変数（`NOTION_TOKEN` と `NOTION_DATABASE_ID`）は Vercel 側の Settings にも設定しておく。
+Vercel。環境変数（`NOTION_TOKEN`・`NOTION_DATABASE_ID`・`CAPTURE_SECRET`）は Vercel 側の Settings にも設定しておく。
+`CAPTURE_SECRET` を入れ忘れると、`/api/capture` は何も受け付けずに 500 を返す。
 
 ## アクセス制限について
 
@@ -123,3 +124,10 @@ Vercel。環境変数（`NOTION_TOKEN` と `NOTION_DATABASE_ID`）は Vercel 側
   Notion から読み直したものを使う
 - 渡されたページが、`NOTION_DATABASE_ID` のデータベースに属してへんかったら 404 を返す
   （他のページを書き換えられへんようにするため）
+
+`/api/capture` の側は、`CAPTURE_SECRET` と一致する `x-capture-secret` ヘッダが無いと 401 を返す。
+`CAPTURE_SECRET` 自体が設定されてへんときは 500 を返して何もせえへん（設定漏れのまま
+無防備に公開されるのを防ぐため）。
+
+Chrome 拡張から叩くときは Deployment Protection も通す必要があるので、Vercel の
+Protection Bypass for Automation で発行した秘密を `x-vercel-protection-bypass` ヘッダに付ける。
