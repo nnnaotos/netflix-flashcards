@@ -119,6 +119,46 @@ Chrome 拡張（[extension/](extension/)）から拾ったばかりのカード�
 サーバー（Vercel）は UTC で動くので、ここを UTC のままにすると
 日本時間の 0時〜9時の間だけ日付が1日ずれる。
 
+## Chrome 拡張（フレーズの取り込み）
+
+Netflix Web を観ながら、字幕を1キーで下書きカードとして Notion に送るための拡張。
+[extension/](extension/) に入っている。ウェブストアには出していない。
+
+### 入れ方
+
+1. Chrome で `chrome://extensions` を開き、「デベロッパーモード」をON
+2. 「パッケージ化されていない拡張機能を読み込む」で `extension/` を選ぶ
+3. 「拡張機能のオプション」で次を設定して保存
+
+| 項目 | 値 |
+|---|---|
+| エンドポイント URL | `https://<アプリ>/api/capture` |
+| キャプチャ用シークレット | `.env.local` の `CAPTURE_SECRET` と同じ値 |
+| Vercel Protection バイパストークン | Vercel の Protection Bypass for Automation で発行した秘密。使ってへんなら空 |
+| ホットキー | 既定は `Alt+S` |
+
+「テスト送信」で疎通を確かめられる。
+
+### 使い方
+
+Netflix で再生中、気になる字幕が出たら `Alt+S`。再生は止まらない。
+字幕が消えた後でも5秒以内なら直前の字幕が送られる。気づいてキーを押すまでの間があるため。
+
+`作品名` は再生画面のタイトルから拾う。Netflix の UI 言語によって英語で来るので、
+`lib/capture.ts` の `SHOW_ALIASES` で既存の選択肢に寄せている。増やすときはここに足す。
+
+### 動かへんとき
+
+- トーストが出ない → `chrome://extensions` で拡張をリロードする
+- `字幕が取得できません` → Netflix 側の DOM が変わった可能性がある。
+  DevTools で `document.querySelector('.player-timedtext')` を見て、
+  `extension/content.js` の `SUBTITLE_ROOT` / `SUBTITLE_LINE` を直す
+- `送信に失敗しました (401)` → シークレットが合ってへん
+- `送信に失敗しました (500)` → アプリ側に `CAPTURE_SECRET` が設定されてへん
+- `送信に失敗しました` とだけ出る（括弧のステータス番号が無い）→ 送信先が `*.vercel.app` でも
+  `localhost:3000` でもない独自ドメインかもしれへん。`extension/manifest.json` の
+  `host_permissions` にそのオリジンを足して、拡張をリロードする
+
 ## デプロイ
 
 Vercel。環境変数（`NOTION_TOKEN`・`NOTION_DATABASE_ID`・`CAPTURE_SECRET`）は Vercel 側の Settings にも設定しておく。
