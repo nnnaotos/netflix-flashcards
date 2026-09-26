@@ -12,4 +12,5 @@ export interface Flashcard {
   nextReviewDate: string | null;    // 次回復習日 (date)
   mastery: number;                  // 習熟度 (number) 0-5 = 復習間隔の段階
   interval: number;                 // Interval (days) 直近に設定した間隔
+  isDraft: boolean;                 // 意味が空 = 拡張で拾っただけで、まだ学習に使えへん
 }
