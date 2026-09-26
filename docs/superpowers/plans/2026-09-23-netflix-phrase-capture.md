@@ -577,9 +577,14 @@ curl -s -X POST https://<your-app>.vercel.app/api/capture \
 Expected: `{"ok":true,...}`。Notion に `bypass check` が増える。
 
 **通らへんかった場合**（Protection Bypass が使えない等）:
-- Deployment Protection を無効化し、`CAPTURE_SECRET` 一本で守る形に切り替える
-- README の「アクセス制限について」の節を、その事実に合わせて書き直す
-- 切り替えたことを報告してから次のタスクへ進む
+- **Deployment Protection は無効化したらあかん。** `/api/cards`・`/api/update` には認証が一切無くて、
+  守ってるのはこの Deployment Protection だけやから、切ったら誰でも396件のカードを読めて
+  復習データも書き換えられるようになる。`CAPTURE_SECRET` は `/api/capture` しか守ってへん
+- まずバイパスをやり直す。秘密を再発行しても **再デプロイするまで反映されへん** のが、
+  「使えへん」に見える一番よくある原因
+- それでも本当に使えへんかったら、Protection は付けたまま、拡張の送信先を
+  `http://localhost:3000/api/capture` にして `npm run dev` を動かしとく。ローカルはバイパス不要なので、
+  開発サーバーが立ってる間はキャプチャできる
 
 確認できたテスト用のページは Notion から消しておく。
 

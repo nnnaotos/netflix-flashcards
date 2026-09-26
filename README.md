@@ -137,7 +137,10 @@ Netflix Web を観ながら、字幕を1キーで下書きカードとして Not
 | Vercel Protection バイパストークン | Vercel の Protection Bypass for Automation で発行した秘密。使ってへんなら空 |
 | ホットキー | 既定は `Alt+S` |
 
-「テスト送信」で疎通を確かめられる。
+設定を変えても、開いたままの Netflix のタブには反映されへん。タブを再読み込みしてから使う。
+
+「テスト送信」で疎通を確かめられる。ただしこれは本番の Notion データベースに実際に1行書き込むので、
+確認できたらそのカードは Notion 側から手で消しておく。
 
 ### 使い方
 
@@ -153,7 +156,9 @@ Netflix で再生中、気になる字幕が出たら `Alt+S`。再生は止ま�
 - `字幕が取得できません` → Netflix 側の DOM が変わった可能性がある。
   DevTools で `document.querySelector('.player-timedtext')` を見て、
   `extension/content.js` の `SUBTITLE_ROOT` / `SUBTITLE_LINE` を直す
-- `送信に失敗しました (401)` → シークレットが合ってへん
+- `送信に失敗しました (401)` → シークレットが合ってへん。または Vercel の Protection バイパストークンが
+  無い・間違ってる・再発行したのに再デプロイしてへん（このトークンはビルド時に埋め込まれるので、
+  再発行だけでは反映されへん）
 - `送信に失敗しました (500)` → アプリ側に `CAPTURE_SECRET` が設定されてへん
 - `送信に失敗しました` とだけ出る（括弧のステータス番号が無い）→ 送信先が `*.vercel.app` でも
   `localhost:3000` でもない独自ドメインかもしれへん。`extension/manifest.json` の

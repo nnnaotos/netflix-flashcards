@@ -136,7 +136,8 @@ export default function Home() {
   };
 
   // Computed counts. Everything below is scoped to the selected show, and the
-  // review filter counts are scoped to the due filter on top of that.
+  // review filter counts are scoped to the due filter on top of that, except
+  // draftCount, which is intentionally global since drafts aren't per-show.
   const studyCards = allCards.filter((c) => !c.isDraft);
   const draftCount = allCards.length - studyCards.length;
   const showCards = showFilter === 'all' ? studyCards : studyCards.filter((c) => c.show === showFilter);

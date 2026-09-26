@@ -81,7 +81,8 @@
 
       // シリーズ名・話数・エピソード名が子要素に分かれとるので、先頭＝シリーズ名を取る
       const head = el.firstElementChild ?? el;
-      const text = (head.textContent ?? '').replace(/\s+/g, ' ').trim();
+      // シリーズ名の後ろに話数とエピソード名が続く。改行で切ってから畳まんと全部繋がってまう
+      const text = (head.textContent ?? '').split('\n')[0].replace(/\s+/g, ' ').trim();
       if (text) return text;
     }
     return '';
@@ -197,6 +198,7 @@
   window.addEventListener(
     'keydown',
     (e) => {
+      if (!e.isTrusted) return; // ページ側のスクリプトが合成したキーでは発火させへん
       if (isTyping(e.target)) return;
       if (e.key.toLowerCase() !== hotkey.key) return;
       if (e.altKey !== hotkey.alt) return;
