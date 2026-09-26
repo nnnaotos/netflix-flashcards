@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>Netflix Phrase Capture の設定</title>
+    <style>
+      body {
+        font: 14px/1.6 system-ui, sans-serif;
+        max-width: 560px;
+        margin: 32px auto;
+        padding: 0 16px;
+      }
+      label { display: block; margin-top: 16px; font-weight: 600; }
+      input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+      .hint { font-weight: 400; color: #666; font-size: 12px; }
+      .row { margin-top: 24px; display: flex; gap: 8px; align-items: center; }
+      button { padding: 8px 16px; cursor: pointer; }
+      #status { margin-left: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Netflix Phrase Capture</h1>
+
+    <label>
+      エンドポイント URL
+      <span class="hint">例: https://xxx.vercel.app/api/capture</span>
+      <input id="endpoint" type="url" placeholder="https://xxx.vercel.app/api/capture" />
+    </label>
+
+    <label>
+      キャプチャ用シークレット
+      <span class="hint">アプリの CAPTURE_SECRET と同じ値</span>
+      <input id="secret" type="password" />
+    </label>
+
+    <label>
+      Vercel Protection バイパストークン
+      <span class="hint">任意。Deployment Protection を使ってへんなら空でよい</span>
+      <input id="bypass" type="password" />
+    </label>
+
+    <label>
+      ホットキー
+      <span class="hint">例: Alt+S / Ctrl+Shift+S</span>
+      <input id="hotkey" type="text" placeholder="Alt+S" />
+    </label>
+
+    <div class="row">
+      <button id="save">保存</button>
+      <button id="test">テスト送信</button>
+      <span id="status"></span>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
