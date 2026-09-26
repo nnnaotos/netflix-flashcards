@@ -8,6 +8,7 @@ Next.js 16（App Router）/ React 19 / TypeScript / Tailwind CSS 3 / `@notionhq/
 ## 必要なもの
 
 - Node.js 20.9 以上（Vercel 側の設定は 24.x）
+- テスト（`npm test`）を動かす場合は Node.js 20.19 以上。vitest が使う vite が要求する
 - Notion のインテグレーションと、カード用のデータベース
 
 ## セットアップ
