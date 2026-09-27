@@ -1,9 +1,14 @@
 /** Netflix から拾った文字列を Notion に入れられる形に整える。HTTP も Notion も知らない純関数 */
 
-/** Netflix の UI 言語によって英語タイトルが来るので、既存の「作品名」select に寄せる */
+/**
+ * Netflix の UI 言語によって英語タイトルが来るので、既存の「作品名」select に寄せる。
+ * 日本語UIは邦題を併記した形（`SUITS/スーツ`）で返してくるので、そっちも要る。
+ * 実機で拾った文字列をそのまま足すこと。推測で足すと、どのみち当たらへん。
+ */
 const SHOW_ALIASES: Record<string, string> = {
   'prison break': 'プリズンブレイク',
   suits: 'SUITS',
+  'suits/スーツ': 'SUITS',
 };
 
 const MAX_PHRASE = 200;

@@ -69,6 +69,10 @@ describe('normalizeShow', () => {
     expect(normalizeShow('suits')).toBe('SUITS');
   });
 
+  it('Netflix が返す邦題つきのタイトルも既存の選択肢に寄せる', () => {
+    expect(normalizeShow('SUITS/スーツ')).toBe('SUITS');
+  });
+
   it('エイリアスにない作品名はそのまま返す', () => {
     expect(normalizeShow('Breaking Bad')).toBe('Breaking Bad');
   });
