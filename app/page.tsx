@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Flashcard, Show, ReviewFilter, DueFilter } from '@/types';
-import { isDue, Answer } from '@/lib/schedule';
+import { Answer } from '@/lib/schedule';
+import { buildTodayQueue, todayProgress } from '@/lib/deck';
 import { todayJST } from '@/lib/date';
 import FlashCard from '@/components/FlashCard';
 import FilterBar from '@/components/FilterBar';
@@ -57,10 +58,6 @@ export default function Home() {
     // 意味が空のカードは学習に使えへんので、デッキに混ぜへん
     let cards = allCards.filter((c) => !c.isDraft);
 
-    if (dueFilter === 'due') {
-      cards = cards.filter((c) => isDue(c.nextReviewDate));
-    }
-
     if (showFilter !== 'all') {
       cards = cards.filter((c) => c.show === showFilter);
     }
@@ -69,6 +66,11 @@ export default function Home() {
       cards = cards.filter((c) => !c.latestReviewDate);
     } else if (reviewFilter === 'reviewed') {
       cards = cards.filter((c) => !!c.latestReviewDate);
+    }
+
+    // 上限は絞り込みのあとにかける。先にかけると、作品で絞った瞬間に上限を割ってまう
+    if (dueFilter === 'due') {
+      cards = buildTodayQueue(cards);
     }
 
     if (isShuffled) cards = shuffle(cards);
@@ -141,8 +143,13 @@ export default function Home() {
   const studyCards = allCards.filter((c) => !c.isDraft);
   const draftCount = allCards.length - studyCards.length;
   const showCards = showFilter === 'all' ? studyCards : studyCards.filter((c) => c.show === showFilter);
-  const dueCards = showCards.filter((c) => isDue(c.nextReviewDate));
+
+  // フィルタが示す件数は、実際にデッキへ入る枚数（＝上限で切ったあと）と一致させる
+  const dueCards = buildTodayQueue(showCards);
   const scopedCards = dueFilter === 'due' ? dueCards : showCards;
+
+  // 今日の目標は1日ぶんの総量なので、作品の絞り込みには連動させへん
+  const progress = todayProgress(studyCards);
 
   const dueCounts = { due: dueCards.length, all: showCards.length };
   const reviewCounts = {
@@ -152,7 +159,6 @@ export default function Home() {
   };
 
   const totalFiltered = filteredCards.length;
-  const reviewedCount = showCards.filter((c) => !!c.latestReviewDate).length;
 
   const card = filteredCards[currentIndex];
 
@@ -189,9 +195,10 @@ export default function Home() {
         {/* Progress */}
         {!loading && (
           <ProgressHeader
-            reviewed={reviewedCount}
+            done={progress.done}
+            goal={progress.goal}
+            pct={progress.pct}
             total={showCards.length}
-            dueToday={dueCounts.due}
             drafts={draftCount}
           />
         )}
