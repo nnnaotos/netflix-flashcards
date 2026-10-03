@@ -152,7 +152,7 @@ export default function Home() {
         setFilteredCards(applyReview);
       }
 
-      showToast(answer === 'again' ? '🔄 あとでもう一度出します' : '✅ 記録しました！', 'success');
+      showToast(answer === 'again' ? 'あとでもう一度出します' : '記録しました', 'success');
 
       // 次のカードへ。「もう一度」は今のカードが末尾へ抜けて後ろが詰まるので据え置き
       if (answer !== 'again') {
@@ -197,10 +197,10 @@ export default function Home() {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded flex items-center justify-center"
             style={{ background: '#E50914' }}>
-            <span style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '18px', letterSpacing: '0.02em' }}>N</span>
+            <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '18px', letterSpacing: '0.02em' }}>N</span>
           </div>
           <div>
-            <h1 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '20px', letterSpacing: '0.05em', lineHeight: 1 }}>
+            <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '20px', letterSpacing: '0.05em', lineHeight: 1 }}>
               NETFLIX ENGLISH
             </h1>
             <p className="text-xs text-gray-500">スペース反復学習</p>
@@ -308,9 +308,10 @@ export default function Home() {
             <div className="rounded-xl p-10 text-center" style={{ background: '#1f1f1f', border: '1px solid #2a2a2a' }}>
               {dueFilter === 'due' && reviewFilter === 'all' ? (
                 <>
-                  <p className="text-4xl mb-3">🎉</p>
-                  <p className="text-gray-300 text-sm mb-1">今日の課題は終わりです</p>
-                  <p className="text-gray-500 text-xs mb-6">お疲れさま。復習日が来たカードはもうありません</p>
+                  <p className="text-[15px] text-[#D4D4D4] mb-1">今日のぶんは終わりです</p>
+                  <p className="text-[12px] text-[#7A7A7A] mb-6">
+                    次は明日。先に進めたいときは、すべてのカードから選べます
+                  </p>
                   <button
                     onClick={() => setDueFilter('all')}
                     className="px-5 py-2.5 rounded-lg text-sm font-semibold"
@@ -321,7 +322,7 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <p className="text-4xl mb-3" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}>0</p>
+                  <p className="text-4xl mb-3" style={{ fontFamily: 'var(--font-bebas)', letterSpacing: '0.02em' }}>0</p>
                   <p className="text-gray-400 text-sm">該当するカードがありません</p>
                 </>
               )}
@@ -343,10 +344,15 @@ export default function Home() {
         {/* Completed state */}
         {!loading && totalFiltered > 0 && currentIndex >= totalFiltered && (
           <div className="w-full max-w-2xl mx-auto px-4 text-center py-10">
-            <p className="text-5xl mb-3" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em', color: '#E50914' }}>
-              COMPLETE!
+            <p
+              className="text-5xl mb-3"
+              style={{ fontFamily: 'var(--font-bebas)', letterSpacing: '0.05em', color: '#E50914' }}
+            >
+              COMPLETE
             </p>
-            <p className="text-gray-400 text-sm mb-6">全 {totalFiltered} カードを完了しました🎉</p>
+            <p className="text-[13px] text-[#8A8A8A] mb-6 tabular-nums">
+              {totalFiltered} 枚ぜんぶ終わりました
+            </p>
             <button
               onClick={() => setCurrentIndex(0)}
               className="px-6 py-3 rounded-lg text-sm font-semibold"
