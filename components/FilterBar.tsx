@@ -20,8 +20,8 @@ const dueOptions: { value: DueFilter; label: string }[] = [
 
 const showOptions: { value: Show; label: string }[] = [
   { value: 'all', label: 'すべて' },
-  { value: 'プリズンブレイク', label: '🔒 プリズンブレイク' },
-  { value: 'SUITS', label: '⚖️ SUITS' },
+  { value: 'プリズンブレイク', label: 'プリズンブレイク' },
+  { value: 'SUITS', label: 'SUITS' },
 ];
 
 const reviewOptions: { value: ReviewFilter; label: string }[] = [
@@ -29,6 +29,31 @@ const reviewOptions: { value: ReviewFilter; label: string }[] = [
   { value: 'unreviewed', label: '未復習' },
   { value: 'reviewed', label: '復習済み' },
 ];
+
+/** 絞り込みの2段目以降。選択中だけが明るい。枠線は常に同じ太さで、動かへん */
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={`flex-1 py-2 px-3 rounded-md text-[12px] transition-colors duration-150 flex items-center justify-center gap-1.5 border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+        active
+          ? 'bg-[#262626] border-[#4A4A4A] text-white'
+          : 'bg-transparent border-[#262626] text-[#7A7A7A] hover:text-[#B0B0B0] hover:border-[#3A3A3A]'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function FilterBar({
   dueFilter,
@@ -41,82 +66,56 @@ export default function FilterBar({
   counts,
 }: Props) {
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 flex flex-col gap-3">
-      {/* Due filter — the main way to study, so it leads */}
-      <div className="flex gap-2">
+    <div className="w-full max-w-2xl mx-auto px-4 flex flex-col gap-2">
+      {/* 主役の切り替え。ここだけが太い字で、選択中は赤い下線が付く */}
+      <div className="flex gap-6 border-b" style={{ borderColor: '#262626' }}>
         {dueOptions.map((opt) => {
           const active = dueFilter === opt.value;
           return (
             <button
               key={opt.value}
               onClick={() => onDueFilterChange(opt.value)}
-              className="flex-1 py-3.5 px-4 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 flex items-center justify-center gap-2"
-              style={{
-                background: active
-                  ? 'linear-gradient(135deg, rgba(229,9,20,0.3), rgba(229,9,20,0.12))'
-                  : '#191919',
-                border: active ? '1px solid rgba(229,9,20,0.7)' : '1px solid #2a2a2a',
-                color: active ? '#fff' : '#777',
-                boxShadow: active ? '0 4px 20px rgba(229,9,20,0.25)' : 'none',
-              }}
+              aria-pressed={active}
+              className="relative pb-2.5 flex items-baseline gap-2 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              style={{ color: active ? '#FFFFFF' : '#7A7A7A' }}
             >
-              {opt.label}
-              <span className="rounded-full px-2 py-0.5 text-xs"
-                style={{
-                  background: active ? '#E50914' : '#2a2a2a',
-                  color: active ? '#fff' : '#555',
-                }}>
+              <span className="text-[15px] font-semibold">{opt.label}</span>
+              <span
+                className="text-[12px] tabular-nums"
+                style={{ color: active ? '#E50914' : '#5A5A5A' }}
+              >
                 {dueCounts[opt.value]}
               </span>
+              {active && (
+                <span
+                  className="absolute left-0 right-0 -bottom-px h-[2px]"
+                  style={{ background: '#E50914' }}
+                />
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Show filter */}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5 pt-1">
         {showOptions.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => onShowChange(opt.value)}
-            className="flex-1 py-2 px-3 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200"
-            style={{
-              background: show === opt.value ? '#2a2a2a' : '#1a1a1a',
-              border: show === opt.value ? '1px solid #4a4a4a' : '1px solid #2a2a2a',
-              color: show === opt.value ? '#fff' : '#666',
-            }}
-          >
+          <Chip key={opt.value} active={show === opt.value} onClick={() => onShowChange(opt.value)}>
             {opt.label}
-          </button>
+          </Chip>
         ))}
       </div>
 
-      {/* Review filter */}
-      <div className="flex gap-2">
-        {reviewOptions.map((opt) => {
-          const count = counts[opt.value];
-          return (
-            <button
-              key={opt.value}
-              onClick={() => onReviewFilterChange(opt.value)}
-              className="flex-1 py-2 px-3 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 flex items-center justify-center gap-2"
-              style={{
-                background: reviewFilter === opt.value ? '#2a2a2a' : '#1a1a1a',
-                border: reviewFilter === opt.value ? '1px solid #4a4a4a' : '1px solid #2a2a2a',
-                color: reviewFilter === opt.value ? '#fff' : '#666',
-              }}
-            >
-              {opt.label}
-              <span className="rounded-full px-1.5 py-0.5 text-xs"
-                style={{
-                  background: reviewFilter === opt.value ? 'rgba(229,9,20,0.3)' : '#2a2a2a',
-                  color: reviewFilter === opt.value ? '#E50914' : '#555',
-                }}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
+      <div className="flex gap-1.5">
+        {reviewOptions.map((opt) => (
+          <Chip
+            key={opt.value}
+            active={reviewFilter === opt.value}
+            onClick={() => onReviewFilterChange(opt.value)}
+          >
+            {opt.label}
+            <span className="text-[11px] text-[#5A5A5A] tabular-nums">{counts[opt.value]}</span>
+          </Chip>
+        ))}
       </div>
     </div>
   );

@@ -9,6 +9,34 @@ import FlashCard from '@/components/FlashCard';
 import FilterBar from '@/components/FilterBar';
 import ProgressHeader from '@/components/ProgressHeader';
 
+/** 設定の切り替え。押せる面やなく、選ばれとるかどうかだけを明るさで出す */
+function ToggleText({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className="text-[12px] transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      style={{
+        color: active ? '#FFFFFF' : '#6A6A6A',
+        textDecoration: active ? 'underline' : 'none',
+        textUnderlineOffset: '4px',
+        textDecorationColor: '#E50914',
+        textDecorationThickness: '2px',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -198,7 +226,6 @@ export default function Home() {
             done={progress.done}
             goal={progress.goal}
             pct={progress.pct}
-            total={showCards.length}
             drafts={draftCount}
           />
         )}
@@ -215,61 +242,35 @@ export default function Home() {
           counts={reviewCounts}
         />
 
-        {/* Mode selector */}
-        {!loading && totalFiltered > 0 && (
-          <div className="w-full max-w-2xl mx-auto px-4 flex items-center justify-center gap-2 mb-2">
-            <button
-              onClick={() => setMode('meaningFirst')}
-              className="flex items-center gap-1 text-xs transition-colors px-3 py-1.5 rounded-lg"
-              style={{
-                background: mode === 'meaningFirst' ? 'rgba(229,9,20,0.15)' : '#1f1f1f',
-                border: mode === 'meaningFirst' ? '1px solid rgba(229,9,20,0.4)' : '1px solid #2a2a2a',
-                color: mode === 'meaningFirst' ? '#E50914' : '#888',
-              }}
-            >
-              意味 → 表現
-            </button>
-            <button
-              onClick={() => setMode('phraseFirst')}
-              className="flex items-center gap-1 text-xs transition-colors px-3 py-1.5 rounded-lg"
-              style={{
-                background: mode === 'phraseFirst' ? 'rgba(229,9,20,0.15)' : '#1f1f1f',
-                border: mode === 'phraseFirst' ? '1px solid rgba(229,9,20,0.4)' : '1px solid #2a2a2a',
-                color: mode === 'phraseFirst' ? '#E50914' : '#888',
-              }}
-            >
-              表現 → 意味
-            </button>
-          </div>
-        )}
-
-        {/* Shuffle + nav */}
+        {/* 出題の向きとシャッフル。どちらも設定であって操作やないので、同じ静かな扱いにする */}
         {!loading && totalFiltered > 0 && (
           <div className="w-full max-w-2xl mx-auto px-4 flex items-center justify-between">
-            <button
-              onClick={handleShuffle}
-              className="flex items-center gap-2 text-xs transition-colors px-3 py-1.5 rounded-lg"
-              style={{
-                background: isShuffled ? 'rgba(229,9,20,0.15)' : '#1f1f1f',
-                border: isShuffled ? '1px solid rgba(229,9,20,0.4)' : '1px solid #2a2a2a',
-                color: isShuffled ? '#E50914' : '#888',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 3 21 3 21 8"/>
-                <line x1="4" y1="20" x2="21" y2="3"/>
-                <polyline points="21 16 21 21 16 21"/>
-                <line x1="4" y1="4" x2="9" y2="9"/>
-              </svg>
-              シャッフル {isShuffled ? 'ON' : 'OFF'}
-            </button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <ToggleText
+                  active={mode === 'meaningFirst'}
+                  onClick={() => setMode('meaningFirst')}
+                >
+                  意味から
+                </ToggleText>
+                <ToggleText active={mode === 'phraseFirst'} onClick={() => setMode('phraseFirst')}>
+                  表現から
+                </ToggleText>
+              </div>
 
-            <div className="flex items-center gap-2">
+              <span className="w-px h-3" style={{ background: '#2E2E2E' }} />
+
+              <ToggleText active={isShuffled} onClick={handleShuffle}>
+                シャッフル
+              </ToggleText>
+            </div>
+
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
                 disabled={currentIndex === 0}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30"
-                style={{ background: '#1f1f1f', border: '1px solid #2a2a2a' }}
+                aria-label="前のカード"
+                className="w-8 h-8 rounded-md flex items-center justify-center text-[#8A8A8A] hover:text-white hover:bg-[#1C1C1C] transition-colors disabled:opacity-25 disabled:hover:bg-transparent"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="15 18 9 12 15 6"/>
@@ -278,8 +279,8 @@ export default function Home() {
               <button
                 onClick={() => setCurrentIndex((i) => Math.min(totalFiltered - 1, i + 1))}
                 disabled={currentIndex >= totalFiltered - 1}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30"
-                style={{ background: '#1f1f1f', border: '1px solid #2a2a2a' }}
+                aria-label="次のカード"
+                className="w-8 h-8 rounded-md flex items-center justify-center text-[#8A8A8A] hover:text-white hover:bg-[#1C1C1C] transition-colors disabled:opacity-25 disabled:hover:bg-transparent"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9 18 15 12 9 6"/>
